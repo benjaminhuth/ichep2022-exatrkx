@@ -1,0 +1,4 @@
+make_plots.py !text !filter !merge !diff
+*.tsv !text !filter !merge !diff
+*.sh !text !filter !merge !diff
+*.csv !text !filter !merge !diff
