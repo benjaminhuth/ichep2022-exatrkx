@@ -15,7 +15,7 @@ mv timing.tsv timing_without_selection.tsv
 # One run to get all data
 echo "Memory with selection"
 
-(nvidia-smi --query-gpu=timestamp,index,memory.total,memory.reserved,memory.free,memory.used --format=csv,nounits --loop-ms=10 --filename=gpu_memory_profile_no_selection.csv) &
+(nvidia-smi --query-gpu=timestamp,index,memory.total,memory.reserved,memory.free,memory.used --format=csv,nounits --loop-ms=10 --filename=gpu_memory_profile_with_selection.csv) &
 NVIDIA_SMI_PID=$!
 
 ../../run_datagen.sh reconstruct . 10 --digi=smear --select --overwrite_config='{ "embeddingDim": 12 }'
