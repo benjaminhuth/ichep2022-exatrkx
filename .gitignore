@@ -2,3 +2,4 @@ train_all
 surface-grids.csv
 detectors.csv
 layer-volumes.csv
+.ipynb_checkpoints
