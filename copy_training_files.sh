@@ -11,6 +11,7 @@ function copy10 {
         -type f \
         -name "0000" \
         -exec mkdir -p $DEST_DIR/{} \; \
+        -exec rm -r $DEST_DIR/{} \; \
         -exec cp -f {} $DEST_DIR/{} \;
 
     #mv $DEST_DIR/tmp $DEST_DIR/tmp_10_events
