@@ -52,3 +52,11 @@ function data_and_timing {
     profile_memory --select;
     data_and_timing --select;
 )
+
+# With post selection
+(
+    mkdir -p with_post_selection;
+    cd with_post_selection;
+    ln -sf ../torchscript
+    data_and_timing --select_performance_only;
+)
