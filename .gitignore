@@ -1,6 +1,3 @@
-train_all
-surface-grids.csv
-detectors.csv
-layer-volumes.csv
-.ipynb_checkpoints
-*.pdf
+version https://git-lfs.github.com/spec/v1
+oid sha256:601d8f3946fa033f5203bac466268249099fe219f588c8fe8b6c809e12749500
+size 104
