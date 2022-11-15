@@ -46,8 +46,8 @@ function data_and_timing {
 
 # With selection
 (
-    mkdir -p without_selection;
-    cd without_selection;
+    mkdir -p with_selection;
+    cd with_selection;
     ln -sf ../torchscript
     profile_memory --select;
     data_and_timing --select;
