@@ -310,22 +310,22 @@ if __name__ == "__main__":
     # Inference results #
     #####################
 
-    # inference_result_dir = Path("smeared_training/without_selection")
-    inference_result_dir = Path("smeared_training/with_selection")
+    inference_result_dir_smear = Path("smeared_training/with_selection")
+    inference_result_dir_truth = Path("truth_training/with_selection")
 
     if True:
-        fig = make_gpu_memory_plot(inference_result_dir / "gpu_memory_profile.csv", gpu_id=3)
+        fig = make_gpu_memory_plot(inference_result_dir_smear / "gpu_memory_profile.csv", gpu_id=3)
         fig.tight_layout()
         fig.savefig("memory_profile.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        fig = make_time_comparison_plot(inference_result_dir / "timing.tsv")
+        fig = make_time_comparison_plot(inference_result_dir_smear / "timing.tsv")
         fig.tight_layout()
         fig.savefig("timing.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(inference_result_dir / "track_finding_performance_exatrkx.root")
-        particles_df_exa_truth, tracks_df_exa_truth = make_performance_dataframes(inference_result_dir / "track_finding_performance_exatrkx.root")
+        particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(inference_result_dir_smear / "track_finding_performance_exatrkx.root")
+        particles_df_exa_truth, tracks_df_exa_truth = make_performance_dataframes(inference_result_dir_truth / "track_finding_performance_exatrkx.root")
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_exa_smear.eta, particles_df_exa_smear.reconstructed_90,
@@ -345,8 +345,8 @@ if __name__ == "__main__":
         fig.savefig("efficiency_exatrkx_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(inference_result_dir / "track_finding_performance_ckf.root")
-        particles_df_ckf_truth, tracks_df_ckf_truth = make_performance_dataframes(inference_result_dir / "track_finding_performance_ckf.root")
+        particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(inference_result_dir_smear / "track_finding_performance_ckf.root")
+        particles_df_ckf_truth, tracks_df_ckf_truth = make_performance_dataframes(inference_result_dir_truth / "track_finding_performance_ckf.root")
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_ckf_smear.eta, particles_df_ckf_smear.reconstructed_90,
