@@ -233,17 +233,17 @@ def eff_pur_cantor(pred, true):
 
 
 def plot_eff_pur(ax, base_dir, datatype, event_number_str):
-    emb_path = base_dir / "tmp/embedding_output" / datatype / event_number_str
+    emb_path = base_dir / "embedding_output" / datatype / event_number_str
     # print(emb_path)
     emb = torch.load(emb_path, map_location=torch.device('cpu'))
     emb_eff, emb_pur = eff_pur_cantor(emb.edge_index.numpy(), emb.modulewise_true_edges.numpy())
 
-    flt_path = base_dir / "tmp/filter_output" / datatype / event_number_str
+    flt_path = base_dir / "filter_output" / datatype / event_number_str
     # print(flt_path)
     flt = torch.load(flt_path, map_location=torch.device('cpu'))
     flt_eff, flt_pur = eff_pur_cantor(flt.edge_index.numpy(), flt.modulewise_true_edges.numpy())
 
-    gnn_path = base_dir / "tmp/gnn_output" / datatype / event_number_str
+    gnn_path = base_dir / "gnn_output" / datatype / event_number_str
     # print(gnn_path)
     gnn = torch.load(gnn_path, map_location=torch.device('cpu'))
     gnn_idxs = gnn.scores.numpy()[:len(gnn.scores)//2] > 0.5
@@ -304,20 +304,28 @@ def make_eff_pur_detector_map(positions, all_edges, true_edges, ax):
 if __name__ == "__main__":
     plt.rcParams["font.family"] = "serif"
     plt.rcParams["font.size"] = 12
+    show = True
+
+    #####################
+    # Inference results #
+    #####################
+
+    # inference_result_dir = Path("smeared_training/without_selection")
+    inference_result_dir = Path("smeared_training/with_selection")
 
     if True:
-        fig = make_gpu_memory_plot("smeared_training/gpu_memory_profile_with_selection.csv", gpu_id=3)
+        fig = make_gpu_memory_plot(inference_result_dir / "gpu_memory_profile.csv", gpu_id=3)
         fig.tight_layout()
         fig.savefig("memory_profile.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        fig = make_time_comparison_plot("smeared_training/timing_with_ckf_and_truthtracking_with_selection.tsv")
+        fig = make_time_comparison_plot(inference_result_dir / "timing.tsv")
         fig.tight_layout()
         fig.savefig("timing.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes("smeared_training/track_finding_performance_exatrkx.root")
-        particles_df_exa_truth, tracks_df_exa_truth = make_performance_dataframes("truth_training/track_finding_performance_exatrkx.root")
+        particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(inference_result_dir / "track_finding_performance_exatrkx.root")
+        particles_df_exa_truth, tracks_df_exa_truth = make_performance_dataframes(inference_result_dir / "track_finding_performance_exatrkx.root")
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_exa_smear.eta, particles_df_exa_smear.reconstructed_90,
@@ -337,8 +345,8 @@ if __name__ == "__main__":
         fig.savefig("efficiency_exatrkx_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes("smeared_training/track_finding_performance_ckf.root")
-        particles_df_ckf_truth, tracks_df_ckf_truth = make_performance_dataframes("truth_training/track_finding_performance_ckf.root")
+        particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(inference_result_dir / "track_finding_performance_ckf.root")
+        particles_df_ckf_truth, tracks_df_ckf_truth = make_performance_dataframes(inference_result_dir / "track_finding_performance_ckf.root")
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_ckf_smear.eta, particles_df_ckf_smear.reconstructed_90,
@@ -358,12 +366,19 @@ if __name__ == "__main__":
         fig.savefig("efficiency_ckf_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
 
+    ####################
+    # Training results #
+    ####################
+
+    training_artifact_dir_truth = Path("truth_training/tmp")
+    training_artifact_dir_smear = Path("smeared_training/tmp")
+
     if True:
         fig1, ax1 = plt.subplots()
         fig2, ax2 = plt.subplots()
         ax = [ax1, ax2]
-        plot_eff_pur(ax, Path("smeared_training"), "train", "0000")
-        plot_eff_pur(ax, Path("truth_training"), "train", "0000")
+        plot_eff_pur(ax, training_artifact_dir_smear, "train", "0000")
+        plot_eff_pur(ax, training_artifact_dir_truth, "train", "0000")
 
         ax[0].legend(["smear", "_smear", "truth", "_truth"])
 
@@ -385,7 +400,7 @@ if __name__ == "__main__":
         # Truth
         fig, ax = plt.subplots()
 
-        gnn_truth = torch.load(Path("truth_training") / "tmp/gnn_output" / "train" / "0000", map_location='cpu')
+        gnn_truth = torch.load(training_artifact_dir_truth / "gnn_output" / "train" / "0000", map_location='cpu')
         idxs_truth = (gnn_truth.scores[:len(gnn_truth.scores)//2] > 0.5).numpy()
 
         # draw less dots to reduce file size
@@ -402,7 +417,7 @@ if __name__ == "__main__":
         fig.savefig("detector_metrics_truth.pdf")
         fig, ax = plt.subplots()
 
-        gnn_smeared = torch.load(Path("smeared_training") / "tmp/gnn_output" / "train" / "0000", map_location='cpu')
+        gnn_smeared = torch.load(training_artifact_dir_smear / "gnn_output" / "train" / "0000", map_location='cpu')
         idxs_smeared = (gnn_smeared.scores[:len(gnn_smeared.scores)//2] > 0.5).numpy()
 
         ax.scatter(x_to_draw[:,2], x_to_draw[:,0], s=1, color='lightgrey')
@@ -413,7 +428,8 @@ if __name__ == "__main__":
                                   ax)
         fig.savefig("detector_metrics_smeared.pdf")
 
-        # plt.show()
+    if show:
+        plt.show()
 
 
 
