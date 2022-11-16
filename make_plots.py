@@ -10,7 +10,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-def make_performance_dataframes(rootfile, global_max_pT=20, global_length_cut=0):
+def make_performance_dataframes(rootfile, min_pT=0, max_pT=100, length_cut=0):
+    assert 0 <= min_pT and min_pT < max_pT
+    assert length_cut >= 0
+
     performance_particles = uproot.open("{}:track_finder_particles".format(rootfile))
     performance_tracks = uproot.open("{}:track_finder_tracks".format(rootfile))
 
@@ -22,8 +25,9 @@ def make_performance_dataframes(rootfile, global_max_pT=20, global_length_cut=0)
     particles_df["pT"] = np.hypot(particles_df.px, particles_df.py)
     particles_df["eta"] = np.arctanh(particles_df.pz/np.hypot(particles_df.pT, particles_df.pz))
     particles_df["theta"] = np.degrees(np.arctan(np.hypot(particles_df.pT, particles_df.pz)/particles_df.pz))
-    particles_df = particles_df[ particles_df["pT"] < global_max_pT ]
-    particles_df = particles_df[ particles_df["nhits"] > global_length_cut ]
+    particles_df = particles_df[ particles_df["pT"] < max_pT ]
+    particles_df = particles_df[ particles_df["pT"] > min_pT ]
+    particles_df = particles_df[ particles_df["nhits"] > length_cut ]
 
     # Track based metrics
     tracks_df = pd.DataFrame()
@@ -43,7 +47,7 @@ def make_performance_dataframes(rootfile, global_max_pT=20, global_length_cut=0)
 
     tracks_df["purity"] = tracks_df["maj_particle_nhits_on_track"] / tracks_df["size"]
     tracks_df["efficiency"] = tracks_df["maj_particle_nhits_on_track"] / tracks_df["maj_particle_nhits_total"]
-    tracks_df = tracks_df[ tracks_df["size"] > global_length_cut ]
+    tracks_df = tracks_df[ tracks_df["size"] > length_cut ]
 
     pT = np.hypot(particles_df["px"].to_numpy(), particles_df["py"].to_numpy())
     p = np.hypot(pT, particles_df["pz"].to_numpy())
@@ -274,7 +278,7 @@ def make_eff_pur_detector_map(positions, all_edges, true_edges, ax):
     z_ranges = []
 
     # Pixel
-    for z_range in [(-1.7, -0.5), (-0.5, 0.5), (0.5, 1.7)]:
+    for z_range in [(-2.0, -0.5), (-0.5, 0.5), (0.5, 2.0)]:
         r_ranges.append((0.0,0.2))
         z_ranges.append(z_range)
 
@@ -292,7 +296,10 @@ def make_eff_pur_detector_map(positions, all_edges, true_edges, ax):
         # print(r_range, z_range)
 
         eff, pur = eff_pur_cantor(all_edges_selected, true_edges_selected)
-        ax.text(np.mean(z_range)-0.4, np.mean(r_range)-0.05, "eff: {:.2f} \npur: {:.2f}".format(eff, pur))
+        ax.text(
+            np.mean(z_range)*1.1 - 0.5,
+            np.mean(r_range) - 0.05,
+            "eff: {:.2f} \npur: {:.2f}".format(eff, pur))
         rectangle_args = {
             "xy": (z_range[0], r_range[0]),
             "width": (z_range[1]-z_range[0]),
@@ -310,22 +317,30 @@ if __name__ == "__main__":
     # Inference results #
     #####################
 
-    inference_result_dir_smear = Path("smeared_training/with_selection")
-    inference_result_dir_truth = Path("truth_training/with_selection")
+    inference_result_dir_smear = Path("inference_result_smeared/with_selection")
+    inference_result_dir_truth = Path("inference_result_truth/with_selection")
+
+    performance_cuts = {
+        "max_pT": 100,
+        "min_pT": 0.5,
+        "length_cut": 8,
+    }
 
     if True:
         fig = make_gpu_memory_plot(inference_result_dir_smear / "gpu_memory_profile.csv", gpu_id=3)
-        fig.tight_layout()
         fig.savefig("memory_profile.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
         fig = make_time_comparison_plot(inference_result_dir_smear / "timing.tsv")
-        fig.tight_layout()
         fig.savefig("timing.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(inference_result_dir_smear / "track_finding_performance_exatrkx.root")
-        particles_df_exa_truth, tracks_df_exa_truth = make_performance_dataframes(inference_result_dir_truth / "track_finding_performance_exatrkx.root")
+        particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(
+            inference_result_dir_smear / "track_finding_performance_exatrkx.root",
+            **performance_cuts)
+        particles_df_exa_truth, tracks_df_exa_truth = make_performance_dataframes(
+            inference_result_dir_truth / "track_finding_performance_exatrkx.root",
+            **performance_cuts)
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_exa_smear.eta, particles_df_exa_smear.reconstructed_90,
@@ -345,8 +360,12 @@ if __name__ == "__main__":
         fig.savefig("efficiency_exatrkx_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
     if True:
-        particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(inference_result_dir_smear / "track_finding_performance_ckf.root")
-        particles_df_ckf_truth, tracks_df_ckf_truth = make_performance_dataframes(inference_result_dir_truth / "track_finding_performance_ckf.root")
+        particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(
+            inference_result_dir_smear / "track_finding_performance_ckf.root",
+            **performance_cuts)
+        particles_df_ckf_truth, tracks_df_ckf_truth = make_performance_dataframes(
+            inference_result_dir_truth / "track_finding_performance_ckf.root",
+            **performance_cuts)
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_ckf_smear.eta, particles_df_ckf_smear.reconstructed_90,
@@ -370,8 +389,8 @@ if __name__ == "__main__":
     # Training results #
     ####################
 
-    training_artifact_dir_truth = Path("truth_training/tmp")
-    training_artifact_dir_smear = Path("smeared_training/tmp")
+    training_artifact_dir_truth = Path("inference_result_truth/tmp")
+    training_artifact_dir_smear = Path("inference_result_smeared/tmp")
 
     if True:
         fig1, ax1 = plt.subplots()
@@ -410,6 +429,8 @@ if __name__ == "__main__":
 
         ax.scatter(x_to_draw[:,2], x_to_draw[:,0], s=1, color='lightgrey')
         ax.set_title("Metrics for truth training")
+        ax.set_xlabel("z [m]")
+        ax.set_ylabel("r [m]")
         make_eff_pur_detector_map(gnn_truth.x.numpy(),
                                   gnn_truth.edge_index[:, idxs_truth].numpy(),
                                   gnn_truth.modulewise_true_edges.numpy(),
@@ -422,6 +443,8 @@ if __name__ == "__main__":
 
         ax.scatter(x_to_draw[:,2], x_to_draw[:,0], s=1, color='lightgrey')
         ax.set_title("Metrics for smeared training")
+        ax.set_xlabel("z [m]")
+        ax.set_ylabel("r [m]")
         make_eff_pur_detector_map(gnn_smeared.x.numpy(),
                                   gnn_smeared.edge_index[:, idxs_smeared].numpy(),
                                   gnn_smeared.modulewise_true_edges.numpy(),
