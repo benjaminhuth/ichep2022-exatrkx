@@ -1,0 +1,15 @@
+# Input/output configuration
+input_dir: ${EXATRKX_DATA}/train_all
+output_dir: ${PROCESSING_OUTPUT}
+detector_path: ${EXATRKX_DATA}/detectors.csv
+n_files: 1000
+n_workers: 32
+n_tasks: 1
+overwrite: True
+
+endcaps: True
+noise: True
+layerwise: True
+modulewise: True
+cell_information: False
+truth_hits: False

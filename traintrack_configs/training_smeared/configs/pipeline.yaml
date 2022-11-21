@@ -1,0 +1,7 @@
+stage_list:
+    - {set: Processing, name: TrackMLFeatureStore, config: processing-smear.yaml}
+    - {set: Embedding, name: LayerlessEmbedding, config: embedding-smear.yaml}
+#    - {set: GraphModifier, name: SimpleGraphModifier, config: graph-modifier-smear.yaml}
+    - {set: Filter, name: VanillaFilter, config: filter-smear.yaml}
+    - {set: GNN, name: InteractionGNN, config: gnn-smear.yaml}
+#    - {set: Segmenting, name: TrackMLSegment, config: segment_config_1k_events_ODD_no_cut.yaml}

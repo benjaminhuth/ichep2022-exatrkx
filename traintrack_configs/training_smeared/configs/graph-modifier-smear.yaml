@@ -1,0 +1,8 @@
+input_dir: ${EMBEDDING_OUTPUT}
+output_dir: ${MODIFIER_OUTPUT}
+project: ${PROJECT_NAME}-graphmodifier
+
+datatype_names: [[train, val, test]]
+datatype_split: [[950, 25, 25]]
+
+target_purity: 0.1

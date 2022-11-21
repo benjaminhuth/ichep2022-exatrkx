@@ -1,3 +1,3 @@
 #!/bin/bash
 
-../make_data.sh smear 12
+../make_data_common.sh smear 12
