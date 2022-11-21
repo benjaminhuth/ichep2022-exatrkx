@@ -7,7 +7,7 @@ This repository collects some scripts that have been used for the ICHEP contribu
 
 ## Training
 
-The training scripts are in the subfolder `traintrack_configs` and consists of scripts for two training runs: one with smeared data, one with true hit data (each steered by the respective `run.sh` script). The training data can be produced with `datagen.py generate <output dir> <number events>`.
+The training scripts are in the subfolder `traintrack_configs` and consists of scripts for two training runs: one with smeared data, one with true hit data (each steered by the respective `run.sh` script). The configuration requires a folder or symbolic link named `LightningModules` containing the module code within each of the folders. The training data can be produced with `datagen.py generate <output dir> <number events>`.
 
 ## Inference
 
