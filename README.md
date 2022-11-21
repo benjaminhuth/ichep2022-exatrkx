@@ -2,6 +2,7 @@
 
 This repository collects some scripts that have been used for the ICHEP contribution [Applying and optimizing the Exa.TrkX Pipeline on the OpenDataDetector with ACTS](https://agenda.infn.it/event/28874/contributions/169199/). For help, contact *benjamin.huth [at] ur.de*.
 
+**Note**: This repository uses git lfs to store the root files.
 **Warning**: These files may contain absolute paths, you may need to edit them in order to use all of them in your environment.
 
 ## Training
