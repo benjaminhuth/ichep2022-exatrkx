@@ -166,14 +166,14 @@ def make_time_comparison_plot(tsv_file):
     for i, c in zip([8, 9, 11], ['tab:purple', 'tab:orange', 'tab:cyan']):
         time = timing.iloc[i][2]
         l = make_label(timing.iloc[i][0])
-        ax.bar('Truth CKF*', time, label=l, bottom=bottom, color=c)
+        ax.bar('Truth CKF', time, label=l, bottom=bottom, color=c)
         bottom += time
 
     bottom = 0
     for i, c in zip([8, 9, 10], ['tab:brown', 'tab:orange', 'tab:green']):
         time = timing.iloc[i][2]
         l = make_label(timing.iloc[i][0])
-        ax.bar('Truth Tracking**', time, label=l, bottom=bottom, color=c)
+        ax.bar('Truth Tracking', time, label=l, bottom=bottom, color=c)
         bottom += time
 
 
@@ -207,10 +207,11 @@ def make_gpu_memory_plot(csv_file, gpu_id):
     time_s = [ (tp - timestamps[0]).total_seconds() for tp in timestamps ]
 
     fig, ax = plt.subplots()
-    ax.plot(time_s, memory_gb )
+    ax.plot(time_s, memory_gb, label="Exa.TrkX full chain")
     ax.set_xlabel("time [s]")
     ax.set_ylabel("GPU memory usage [GB]")
     ax.set_title("GPU memory consumption for 10 events")
+    ax.legend(loc='lower right')
 
     return fig
 
@@ -254,12 +255,19 @@ def plot_eff_pur(ax, base_dir, datatype, event_number_str):
     gnn_eff, gnn_pur = eff_pur_cantor(gnn.edge_index.numpy().T[gnn_idxs].T, gnn.modulewise_true_edges.numpy())
     gnn_eff, gnn_pur
 
-    ax[0].plot([0,1,2], [emb_eff, flt_eff, gnn_eff])
-    ax[0].scatter([0,1,2], [emb_eff, flt_eff, gnn_eff])
-    ax[1].plot([0,1,2], [emb_pur, flt_pur, gnn_pur])
-    ax[1].scatter([0,1,2], [emb_pur, flt_pur, gnn_pur])
+    pos = [0.2,1,1.8]
 
-def make_eff_pur_detector_map(positions, all_edges, true_edges, ax):
+    ax[0].plot(pos, [emb_eff, flt_eff, gnn_eff])
+    ax[0].scatter(pos, [emb_eff, flt_eff, gnn_eff])
+    ax[1].plot(pos, [emb_pur, flt_pur, gnn_pur])
+    ax[1].scatter(pos, [emb_pur, flt_pur, gnn_pur])
+
+    for axx in ax:
+        axx.set_xlim(0,2)
+        axx.set_xticks(pos)
+        axx.set_xticklabels(["graph building","graph filtering","GNN"])
+
+def make_eff_pur_detector_map(positions, all_edges, true_edges, ax, prec=2):
     def edges_in_radius(x, edge_index, r_range, z_range):
         x_idxs = np.nonzero(np.logical_and.reduce((
             x[:,0] > r_range[0],
@@ -296,10 +304,11 @@ def make_eff_pur_detector_map(positions, all_edges, true_edges, ax):
         # print(r_range, z_range)
 
         eff, pur = eff_pur_cantor(all_edges_selected, true_edges_selected)
+        fmt_str = "eff: {:." + str(prec) + "f} \npur: {:." + str(prec) + "f}"
         ax.text(
             np.mean(z_range)*1.1 - 0.5,
             np.mean(r_range) - 0.05,
-            "eff: {:.2f} \npur: {:.2f}".format(eff, pur))
+            fmt_str.format(eff, pur))
         rectangle_args = {
             "xy": (z_range[0], r_range[0]),
             "width": (z_range[1]-z_range[0]),
@@ -317,8 +326,8 @@ if __name__ == "__main__":
     # Inference results #
     #####################
 
-    inference_result_dir_smear = Path("inference_result_smeared/with_selection")
-    inference_result_dir_truth = Path("inference_result_truth/with_selection")
+    inference_result_dir_smear = Path("inference_results_smeared/with_selection")
+    inference_result_dir_truth = Path("inference_results_truth/with_selection")
 
     performance_cuts = {
         "max_pT": 100,
@@ -326,15 +335,15 @@ if __name__ == "__main__":
         "length_cut": 8,
     }
 
-    if True:
+    if False:
         fig = make_gpu_memory_plot(inference_result_dir_smear / "gpu_memory_profile.csv", gpu_id=3)
         fig.savefig("memory_profile.pdf",bbox_inches='tight', pad_inches = 0)
 
-    if True:
+    if False:
         fig = make_time_comparison_plot(inference_result_dir_smear / "timing.tsv")
         fig.savefig("timing.pdf",bbox_inches='tight', pad_inches = 0)
 
-    if True:
+    if False:
         particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(
             inference_result_dir_smear / "track_finding_performance_exatrkx.root",
             **performance_cuts)
@@ -344,13 +353,13 @@ if __name__ == "__main__":
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_exa_smear.eta, particles_df_exa_smear.reconstructed_90,
-                            25, do_scatter=False, label="smear chain (90%)", color="tab:blue")
+                            25, do_scatter=False, label="smeared hits (90%)", color="tab:blue")
         ax = plot_binned_2d(ax, particles_df_exa_smear.eta, particles_df_exa_smear.reconstructed_50,
-                            25, do_scatter=False, label="smear chain (50%)", color="tab:blue", ls="--")
+                            25, do_scatter=False, label="smeared hits (50%)", color="tab:blue", ls="--")
         ax = plot_binned_2d(ax, particles_df_exa_truth.eta, particles_df_exa_truth.reconstructed_90,
-                            25, do_scatter=False, label="truth chain (90%)", color="tab:orange")
+                            25, do_scatter=False, label="true hits (90%)", color="tab:orange")
         ax = plot_binned_2d(ax, particles_df_exa_truth.eta, particles_df_exa_truth.reconstructed_50,
-                            25, do_scatter=False, label="truth chain (50%)", color="tab:orange", ls="--")
+                            25, do_scatter=False, label="true hits (50%)", color="tab:orange", ls="--")
         ax.legend()
         ax.set_xlabel("$\eta$")
         ax.set_ylabel("fraction of particles reconstructed")
@@ -359,7 +368,7 @@ if __name__ == "__main__":
         fig.tight_layout()
         fig.savefig("efficiency_exatrkx_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
-    if True:
+    if False:
         particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(
             inference_result_dir_smear / "track_finding_performance_ckf.root",
             **performance_cuts)
@@ -369,13 +378,13 @@ if __name__ == "__main__":
 
         fig, ax = plt.subplots()
         ax = plot_binned_2d(ax, particles_df_ckf_smear.eta, particles_df_ckf_smear.reconstructed_90,
-                            25, do_scatter=False, label="smear chain (90%)", color="tab:green")
+                            25, do_scatter=False, label="smeared hits (90%)", color="tab:blue")
         ax = plot_binned_2d(ax, particles_df_ckf_smear.eta, particles_df_ckf_smear.reconstructed_50,
-                            25, do_scatter=False, label="smear chain (50%)", color="tab:green", ls="--")
+                            25, do_scatter=False, label="smeared hits (50%)", color="tab:blue", ls="--")
         ax = plot_binned_2d(ax, particles_df_ckf_truth.eta, particles_df_ckf_truth.reconstructed_90,
-                            25, do_scatter=False, label="truth chain (90%)", color="tab:red")
+                            25, do_scatter=False, label="true hits (90%)", color="tab:orange")
         ax = plot_binned_2d(ax, particles_df_ckf_truth.eta, particles_df_ckf_truth.reconstructed_50,
-                            25, do_scatter=False, label="truth chain (50%)", color="tab:red", ls="--")
+                            25, do_scatter=False, label="true hits (50%)", color="tab:orange", ls="--")
         ax.legend()
         ax.set_xlabel("$\eta$")
         ax.set_ylabel("fraction of particles reconstructed")
@@ -389,17 +398,18 @@ if __name__ == "__main__":
     # Training results #
     ####################
 
-    training_artifact_dir_truth = Path("inference_result_truth/tmp")
-    training_artifact_dir_smear = Path("inference_result_smeared/tmp")
+    training_artifact_dir_truth = Path("inference_results_truth/tmp")
+    training_artifact_dir_smear = Path("inference_results_smeared/tmp")
 
-    if True:
+    if False:
         fig1, ax1 = plt.subplots()
         fig2, ax2 = plt.subplots()
         ax = [ax1, ax2]
         plot_eff_pur(ax, training_artifact_dir_smear, "train", "0000")
         plot_eff_pur(ax, training_artifact_dir_truth, "train", "0000")
 
-        ax[0].legend(["smear", "_smear", "truth", "_truth"])
+        ax[0].legend(["smeared hits", "_smear", "truth hits", "_truth"])
+        ax[1].legend(["smeared hits", "_smear", "truth hits", "_truth"])
 
         ax[0].set_title("Training Efficiency")
         ax[1].set_title("Training Purity")
@@ -407,49 +417,56 @@ if __name__ == "__main__":
         ax[0].set_ylabel("efficiency")
         ax[1].set_ylabel("purity")
 
-        for axx in ax:
-            axx.set_xticks([0,1,2])
-            axx.set_xticklabels(["embedding","filtering","GNN"])
-
         fig1.savefig("training_eff.pdf")
         fig2.savefig("training_pur.pdf")
         # plt.show()
 
     if True:
+        def make_detector_plot(event_file, **kwargs):
+            fig, ax = plt.subplots()
+
+            try:
+                idxs = (event_file.scores[:len(event_file.scores)//2] > 0.5).numpy()
+                edge_index = event_file.edge_index[:, idxs].numpy()
+            except:
+                edge_index = event_file.edge_index.numpy()
+
+
+            # draw less dots to reduce file size
+            x_to_draw = event_file.x.numpy().copy()
+            np.random.shuffle(x_to_draw)
+            x_to_draw = x_to_draw[:len(event_file.x)//10]
+
+            ax.scatter(x_to_draw[:,2], x_to_draw[:,0], s=1, color='lightgrey')
+            ax.set_xlabel("z [m]")
+            ax.set_ylabel("r [m]")
+            make_eff_pur_detector_map(event_file.x.numpy(),
+                                    edge_index,
+                                    event_file.modulewise_true_edges.numpy(),
+                                    ax, **kwargs)
+
+            return fig, ax
+
         # Truth
-        fig, ax = plt.subplots()
-
         gnn_truth = torch.load(training_artifact_dir_truth / "gnn_output" / "train" / "0000", map_location='cpu')
-        idxs_truth = (gnn_truth.scores[:len(gnn_truth.scores)//2] > 0.5).numpy()
-
-        # draw less dots to reduce file size
-        x_to_draw = gnn_truth.x.numpy()
-        np.random.shuffle(x_to_draw)
-        x_to_draw = x_to_draw[:len(gnn_truth.x)//10]
-
-        ax.scatter(x_to_draw[:,2], x_to_draw[:,0], s=1, color='lightgrey')
+        fig, ax = make_detector_plot(gnn_truth)
         ax.set_title("Metrics for truth training")
-        ax.set_xlabel("z [m]")
-        ax.set_ylabel("r [m]")
-        make_eff_pur_detector_map(gnn_truth.x.numpy(),
-                                  gnn_truth.edge_index[:, idxs_truth].numpy(),
-                                  gnn_truth.modulewise_true_edges.numpy(),
-                                  ax)
         fig.savefig("detector_metrics_truth.pdf")
-        fig, ax = plt.subplots()
 
         gnn_smeared = torch.load(training_artifact_dir_smear / "gnn_output" / "train" / "0000", map_location='cpu')
-        idxs_smeared = (gnn_smeared.scores[:len(gnn_smeared.scores)//2] > 0.5).numpy()
-
-        ax.scatter(x_to_draw[:,2], x_to_draw[:,0], s=1, color='lightgrey')
+        fig, ax = make_detector_plot(gnn_smeared)
         ax.set_title("Metrics for smeared training")
-        ax.set_xlabel("z [m]")
-        ax.set_ylabel("r [m]")
-        make_eff_pur_detector_map(gnn_smeared.x.numpy(),
-                                  gnn_smeared.edge_index[:, idxs_smeared].numpy(),
-                                  gnn_smeared.modulewise_true_edges.numpy(),
-                                  ax)
         fig.savefig("detector_metrics_smeared.pdf")
+
+        embedding_smeared = torch.load(training_artifact_dir_truth / "embedding_output" / "train" / "0000", map_location='cpu')
+        fig, ax = make_detector_plot(embedding_smeared, prec=4)
+        ax.set_title("Embedding stage (smeared)")
+        fig.savefig("detector_metrics_smeared_embedding.pdf")
+
+        filter_smeared = torch.load(training_artifact_dir_truth / "filter_output" / "train" / "0000", map_location='cpu')
+        fig, ax = make_detector_plot(filter_smeared)
+        ax.set_title("Filter stage (smeared)")
+        fig.savefig("detector_metrics_smeared_filter.pdf")
 
     if show:
         plt.show()
