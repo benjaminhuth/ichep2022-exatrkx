@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a2935fe1a52a165fa888ddc37481d21fb61c53487a1d95cd8b9b670085c774e3
-size 112
+.ipynb_checkpoints
+*.kdev4
+*.pdf
+train_all
+detectors.csv
+layer-volumes.csv
+surface-grids.csv

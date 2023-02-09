@@ -1,0 +1,10 @@
+{
+    "modelDir": "config_smeared/torchscript",
+    "spacepointFeatures": 3,
+    "embeddingDim": 12,
+    "rVal": 0.2,
+    "knnVal": 500,
+    "filterCut": 0.01,
+    "n_chunks": 5,
+    "edgeCut": 0.5
+}

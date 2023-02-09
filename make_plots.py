@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import sys
 import itertools
 
@@ -326,8 +328,11 @@ if __name__ == "__main__":
     # Inference results #
     #####################
 
-    inference_result_dir_smear = Path("inference_results_smeared/with_selection")
-    inference_result_dir_truth = Path("inference_results_truth/with_selection")
+    inference_result_dir_smear = Path("inference_results/smeared")
+    inference_result_dir_truth = Path("inference_results/truth")
+
+    output_dir = Path("plots")
+    output_dir.mkdir(exist_ok=True, parents=True)
 
     performance_cuts = {
         "max_pT": 100,
@@ -335,15 +340,15 @@ if __name__ == "__main__":
         "length_cut": 8,
     }
 
-    if False:
-        fig = make_gpu_memory_plot(inference_result_dir_smear / "gpu_memory_profile.csv", gpu_id=3)
-        fig.savefig("memory_profile.pdf",bbox_inches='tight', pad_inches = 0)
+    if True:
+        fig = make_gpu_memory_plot(inference_result_dir_smear / "gpu_memory_profile.csv", gpu_id=0)
+        fig.savefig(output_dir / "memory_profile.pdf",bbox_inches='tight', pad_inches = 0)
 
-    if False:
+    if True:
         fig = make_time_comparison_plot(inference_result_dir_smear / "timing.tsv")
-        fig.savefig("timing.pdf",bbox_inches='tight', pad_inches = 0)
+        fig.savefig(output_dir / "timing.pdf",bbox_inches='tight', pad_inches = 0)
 
-    if False:
+    if True:
         particles_df_exa_smear, tracks_df_exa_smear = make_performance_dataframes(
             inference_result_dir_smear / "track_finding_performance_exatrkx.root",
             **performance_cuts)
@@ -366,9 +371,9 @@ if __name__ == "__main__":
         ax.set_title("Reconstruction efficiencies for Exa.TrkX")
         ax.set_ylim(0,1)
         fig.tight_layout()
-        fig.savefig("efficiency_exatrkx_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
+        fig.savefig(output_dir / "efficiency_exatrkx_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
-    if False:
+    if True:
         particles_df_ckf_smear, tracks_df_ckf_smear = make_performance_dataframes(
             inference_result_dir_smear / "track_finding_performance_ckf.root",
             **performance_cuts)
@@ -391,17 +396,17 @@ if __name__ == "__main__":
         ax.set_title("Reconstruction efficiencies for the CKF")
         ax.set_ylim(0,1)
         fig.tight_layout()
-        fig.savefig("efficiency_ckf_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
+        fig.savefig(output_dir / "efficiency_ckf_smeared_vs_truth.pdf",bbox_inches='tight', pad_inches = 0)
 
 
     ####################
     # Training results #
     ####################
 
-    training_artifact_dir_truth = Path("inference_results_truth/tmp")
-    training_artifact_dir_smear = Path("inference_results_smeared/tmp")
+    training_artifact_dir_truth = Path("training_artifacts/truth/tmp")
+    training_artifact_dir_smear = Path("training_artifacts/smeared/tmp")
 
-    if False:
+    if True:
         fig1, ax1 = plt.subplots()
         fig2, ax2 = plt.subplots()
         ax = [ax1, ax2]
@@ -417,8 +422,8 @@ if __name__ == "__main__":
         ax[0].set_ylabel("efficiency")
         ax[1].set_ylabel("purity")
 
-        fig1.savefig("training_eff.pdf")
-        fig2.savefig("training_pur.pdf")
+        fig1.savefig(output_dir / "training_eff.pdf")
+        fig2.savefig(output_dir / "training_pur.pdf")
         # plt.show()
 
     if True:
@@ -451,22 +456,22 @@ if __name__ == "__main__":
         gnn_truth = torch.load(training_artifact_dir_truth / "gnn_output" / "train" / "0000", map_location='cpu')
         fig, ax = make_detector_plot(gnn_truth)
         ax.set_title("Metrics for truth training")
-        fig.savefig("detector_metrics_truth.pdf")
+        fig.savefig(output_dir / "detector_metrics_truth.pdf")
 
         gnn_smeared = torch.load(training_artifact_dir_smear / "gnn_output" / "train" / "0000", map_location='cpu')
         fig, ax = make_detector_plot(gnn_smeared)
         ax.set_title("Metrics for smeared training")
-        fig.savefig("detector_metrics_smeared.pdf")
+        fig.savefig(output_dir / "detector_metrics_smeared.pdf")
 
         embedding_smeared = torch.load(training_artifact_dir_truth / "embedding_output" / "train" / "0000", map_location='cpu')
         fig, ax = make_detector_plot(embedding_smeared, prec=4)
         ax.set_title("Embedding stage (smeared)")
-        fig.savefig("detector_metrics_smeared_embedding.pdf")
+        fig.savefig(output_dir / "detector_metrics_smeared_embedding.pdf")
 
         filter_smeared = torch.load(training_artifact_dir_truth / "filter_output" / "train" / "0000", map_location='cpu')
         fig, ax = make_detector_plot(filter_smeared)
         ax.set_title("Filter stage (smeared)")
-        fig.savefig("detector_metrics_smeared_filter.pdf")
+        fig.savefig(output_dir / "detector_metrics_smeared_filter.pdf")
 
     if show:
         plt.show()
